@@ -154,7 +154,7 @@ const utils = (() => {
     return /^\d+$/.test(mobile);
   };
   const isValidEmail = (email) => {
-    if (email.length >= 40) {
+    if (email.length >= 40 || email.length == 0) {
       return false;
     }
     return email.match(
@@ -223,9 +223,6 @@ const utils = (() => {
     sortTable,
   };
 })();
-
-
-
 
 //Initilize.
 controller.init();
