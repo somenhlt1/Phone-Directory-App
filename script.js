@@ -48,8 +48,7 @@ const ViewModel = (() => {
 
 //Rendering function
 const render = (() => {
-  const data = () => {
-    const data = UserData.getUsers();
+  const data = (data = UserData.getUsers()) => {
     let htmlBody = "";
     data.forEach((each) => {
       htmlBody += ` <tr>
@@ -61,18 +60,7 @@ const render = (() => {
     ViewModel.displayData.innerHTML = htmlBody;
   };
 
-  const customData = (data) => {
-    let htmlBody = "";
-    data.forEach((each) => {
-      htmlBody += ` <tr>
-            <td>${each.name}</td>
-            <td>${each.mobile}</td>
-            <td>${each.email}</td>
-          </tr>`;
-    });
-    ViewModel.displayData.innerHTML = htmlBody;
-  };
-  return { data, customData };
+  return { data };
 })();
 
 //Control actions
@@ -122,7 +110,7 @@ const controller = (() => {
     } else {
       ViewModel.searchResult.classList.add("dn");
     }
-    render.customData(result);
+    render.data(result);
   };
 
   const init = () => {
