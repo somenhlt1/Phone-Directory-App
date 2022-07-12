@@ -6,6 +6,10 @@ const UserData = {
     { name: "A", mobile: "5714578541", email: "as345dkjj@gmail.com" },
     { name: "B", mobile: "777888999", email: "hdfkj@gmail.com" },
     { name: "C", mobile: "7038742541", email: "12515asfs34@gmail.com" },
+    { name: "Adam", mobile: "1231231233", email: "test@test.abc" },
+    { name: "Tom", mobile: "8901234567", email: "test@test.edu" },
+    { name: "David", mobile: "1234567890", email: "rty@test.cn" },
+    { name: "Helen", mobile: "6789012345", email: "erty@test.yahoo" },
   ],
 
   addUser: function (data) {
@@ -51,10 +55,10 @@ const render = (() => {
   const data = (data = UserData.getUsers()) => {
     let htmlBody = "";
     data.forEach((each) => {
-      htmlBody += ` <tr>
-            <td>${each.name}</td>
-            <td>${each.mobile}</td>
-            <td>${each.email}</td>
+      htmlBody += ` <tr title="Click to remove this person!">
+            <td id="name">${each.name}</td>
+            <td id="mobile">${each.mobile}</td>
+            <td id="email">${each.email}</td>
           </tr>`;
     });
     ViewModel.displayData.innerHTML = htmlBody;
@@ -66,24 +70,14 @@ const render = (() => {
 //Control actions
 const controller = (() => {
   const onAddContact = () => {
-    const [error, data] = [[], {}];
-
+    const data = {};
     ViewModel.inputList.forEach((each) => {
       data[each.id] = each.value;
     });
 
-    //Check
-    if (!utils.isValidMobile(data.mobile)) {
-      error.push("Invalid mobile");
-    }
-
-    if (!utils.isValidName(data.name)) {
-      error.push("Invalid Name");
-    }
-
-    if (!utils.isValidEmail(data.email)) {
-      error.push("Invalid Email");
-    }
+    //Check if the input is valid.
+    //Can access what type of error from error array.
+    let error = utils.isInputValid(data);
 
     //If error do this
     if (error.length > 0) {
@@ -95,9 +89,14 @@ const controller = (() => {
     }
     //Add
     UserData.addUser(data);
+    //Clear input
     ViewModel.inputList.forEach((each) => {
       each.value = "";
     });
+    //Clear search
+    ViewModel.search.value = "";
+
+    //Re-render element
     render.data();
   };
 
@@ -113,18 +112,46 @@ const controller = (() => {
     render.data(result);
   };
 
-  const init = () => {
-    ViewModel.btn_contact.addEventListener("click", controller.onAddContact);
-    ViewModel.search.addEventListener("keyup", onSearch);
+  const onDeleteItem = (event) => {
+    const data = {};
+    //event.path[1] = the current row clicked;
 
+    data["name"] = event.path[1].getElementsByTagName("td").name.innerHTML;
+    data["mobile"] = event.path[1].getElementsByTagName("td").mobile.innerHTML;
+    data["email"] = event.path[1].getElementsByTagName("td").email.innerHTML;
+
+    let isExecuted = confirm(`Are you sure to delete ${data.name}`);
+
+    if (!isExecuted) {
+      return;
+    }
+
+    //event.path[2] = the table body in which can remove child which is event.path[1]
+    event.path[2].removeChild(event.path[1]);
+
+    //Some control delay
+    setTimeout(() => {
+      UserData.removeAUser(data);
+    }, 500);
+  };
+
+  const init = () => {
+    //Setup event click on add
+    ViewModel.btn_contact.addEventListener("click", onAddContact);
+    //Key up on search
+    ViewModel.search.addEventListener("keyup", onSearch);
+    //Sort on the head table
     ViewModel.tableNameSort.addEventListener("click", (e) => {
       utils.sortTable("summaryTable", 0);
     });
+    //Delete on target row
+    ViewModel.displayData.addEventListener("click", onDeleteItem);
 
+    //First render
     render.data();
   };
 
-  return { onAddContact, init };
+  return { init };
 })();
 
 //Utils for validate data
@@ -150,30 +177,21 @@ const utils = (() => {
     );
   };
 
-  const sortAcsending = (a, b) => {
-    const nameA = a.name.toLowerCase();
-    const nameB = b.name.toLowerCase();
-    if (nameA < nameB) {
-      return -1;
-    }
-    if (nameA > nameB) {
-      return 1;
+  const isInputValid = (input) => {
+    const error = [];
+    //Check
+    if (!isValidMobile(input.mobile)) {
+      error.push("Invalid mobile");
     }
 
-    return 0;
-  };
-
-  const sortDecending = (a, b) => {
-    const nameA = a.name.toLowerCase();
-    const nameB = b.name.toLowerCase();
-    if (nameA > nameB) {
-      return -1;
-    }
-    if (nameA < nameB) {
-      return 1;
+    if (!isValidName(input.name)) {
+      error.push("Invalid Name");
     }
 
-    return 0;
+    if (!isValidEmail(input.email)) {
+      error.push("Invalid Email");
+    }
+    return error;
   };
 
   //Custom sort table using bubbleSort
@@ -203,14 +221,13 @@ const utils = (() => {
     }
   };
   return {
-    isValidName,
-    isValidMobile,
-    isValidEmail,
-    sortAcsending,
-    sortDecending,
+    isInputValid,
     sortTable,
   };
 })();
 
 //Initilize.
 controller.init();
+
+//Set this on/off to access the state from browser for bug checking.
+window.UserData = UserData;

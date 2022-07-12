@@ -137,3 +137,9 @@ tbody tr:nth-child(odd) {
   align-items: center;
   text-align: center;
 }
+
+
+tbody tr:hover{
+  cursor: pointer;
+  background-color: #4cb5f3 !important;
+}
